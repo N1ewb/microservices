@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import Roomcards from "../components/Roomcards";
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const [availableRooms, setAvailableRooms] = useState();
 
   useEffect(() => {
@@ -18,7 +18,7 @@ const Dashboard = () => {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, token]);
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">

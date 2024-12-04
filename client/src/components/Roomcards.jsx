@@ -8,13 +8,15 @@ export default function Roomcards({ room }) {
 
   const handleBookRoom = async () => {
     try {
-      const reqBody = {
+      const response = await api.post("http://localhost:4001/rooms", {
         roomId: room.id,
         userId: user.id,
-        date: new Date().toISOString(),
-      };
-
-      const response = await api.post("/book/room", reqBody);
+        date: "2024-12-04",
+      });
+      console.log("Response: ", response);
+      if (response.status !== 200) {
+        throw new Error("Invalid credentials");
+      }
 
       setMessage(response.data.message || "Room successfully booked!");
       console.log("Response message", response.data.message);

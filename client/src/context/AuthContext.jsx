@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { api } from "../lib/api";
+import { toast } from "react-hot-toast";
 
 export const AuthContext = createContext();
 
@@ -14,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     try {
       return token ? jwtDecode(token) : null;
     } catch {
-      return null; // Fallback if token is invalid
+      return null;
     }
   });
 
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     const { username, password } = formValues;
 
     if (!username || !password) {
-      setError("Both fields are required!");
+      toast("Both fields are required!");
       return;
     }
 
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post("/login", { username, password });
 
       if (response.status !== 200) {
-        throw new Error("Invalid credentials");
+        toast("Invalid credentials");
       }
 
       const { token } = response.data;
@@ -40,14 +41,33 @@ export const AuthProvider = ({ children }) => {
 
       try {
         setUser(jwtDecode(token));
-        console.log("token: ", token);
       } catch (err) {
         console.error("Failed to decode token:", err);
         setUser(null);
       }
     } catch (err) {
       console.error(err);
-      setError("Login failed. Please check your credentials.");
+      toast("Login failed. Please check your credentials.");
+    }
+  };
+
+  const register = async (formValues) => {
+    const { first_name, last_name, username, password } = formValues;
+
+    try {
+      const response = await api.post("/register", {
+        first_name,
+        last_name,
+        username,
+        password,
+      });
+
+      if (response.status === 200) {
+        useToast("Registration successful:", response.data);
+        localStorage.setItem("token", response.data.token);
+      }
+    } catch (error) {
+      useToast("Error occured");
     }
   };
 
@@ -58,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout }}>
+    <AuthContext.Provider value={{ token, user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { rooms } = require("./StaticDatas");
+const { rooms } = require("../StaticDatas");
 
 app.use(cors());
 app.use(express.json());

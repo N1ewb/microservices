@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 export default function Register() {
   const { register } = useAuth();
@@ -26,7 +27,7 @@ export default function Register() {
     e.preventDefault();
 
     if (formValues.password !== formValues.confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -36,15 +37,19 @@ export default function Register() {
       !formValues.username ||
       !formValues.password
     ) {
-      setError("All fields are required.");
+      toast.error("All fields are required.");
       return;
     }
 
     try {
-      await register(formValues);
-      setError("");
+      const res = await register(formValues);
+      if (res.data.token) {
+        toast(res.data.message);
+      } else {
+        toast.error(res.data.message);
+      }
     } catch (err) {
-      setError("Error during registration.");
+      toast.error("Error during registration.");
     }
   };
 

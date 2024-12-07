@@ -1,6 +1,14 @@
 import { LibraryBig, LucideLayoutDashboard, FileClock } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar() {
+  const {user} = useAuth()
+
+  if(!user){
+    return <div>Loading</div>
+  }
+
   return (
     <aside className="w-[20%] h-screen bg-gray-100 border-r shadow-lg">
       {/* Sidebar Header */}
@@ -12,22 +20,22 @@ export default function Sidebar() {
       <nav className="p-4">
         <ul>
           <li>
-            <a
-              href="#"
+            <Link
+              to="/private/user/dashboard"
               className="flex items-center py-2 px-3 rounded hover:bg-blue-500 hover:text-white transition-colors"
             >
               <LucideLayoutDashboard size={24} className="mr-3" />
               <span>Dashboard</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#"
+            <Link
+              to="/private/user/payments"
               className="flex items-center py-2 px-3 rounded hover:bg-blue-500 hover:text-white transition-colors"
             >
               <LibraryBig size={24} className="mr-3" />
               <span>Payment Records</span>
-            </a>
+            </Link>
           </li>
           <li>
             <a

@@ -30,15 +30,17 @@ const initializeDatabase = () => {
               }
             }
           );
-          
 
           db.run(
             `CREATE TABLE IF NOT EXISTS Rooms (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               type TEXT NOT NULL,
+              name TEXT NOT NULL,
+              description TEXT NOT NULL,
               price REAL NOT NULL,
               status TEXT NOT NULL,
-              image_path TEXT NOT NULL
+              image_path TEXT NOT NULL,
+              booked_by INTEGER NULL
             );`,
             (err) => {
               if (err) {
@@ -49,30 +51,80 @@ const initializeDatabase = () => {
               }
             }
           );
+
+          db.run(
+            `CREATE TABLE IF NOT EXISTS Payments (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL,
+              amount REAL NOT NULL,
+              payment_method TEXT NOT NULL,
+              payment_status TEXT NOT NULL,
+              payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (user_id) REFERENCES Users(id)
+            );`,
+            (err) => {
+              if (err) {
+                reject("Error creating Payments table", err.message);
+              } else {
+                console.log("Payments table is ready.");
+              }
+            }
+          );
+
+          db.run(
+            `CREATE TABLE IF NOT EXISTS BookingsHistory (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              room_id INTEGER NOT NULL,
+              user_id INTEGER NOT NULL,
+              booked_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              payment_id INTEGER NOT NULL,
+              FOREIGN KEY (room_id) REFERENCES Rooms(id),
+              FOREIGN KEY (user_id) REFERENCES Users(id),
+              FOREIGN KEY (payment_id) REFERENCES Payments(id)
+            );`,
+            (err) => {
+              if (err) {
+                reject("Error creating BookingsHistory table", err.message);
+              } else {
+                console.log("BookingsHistory table is ready.");
+                resolve(db);
+              }
+            }
+          );
         }
       }
     );
   });
 };
 
-const addUser = (db, first_name, last_name, username, password, role = "user") => {
+const addUser = (
+  db,
+  first_name,
+  last_name,
+  username,
+  password,
+  role = "user"
+) => {
   return new Promise((resolve, reject) => {
     const query = `
       INSERT INTO Users (first_name, last_name, username, password, role)
       VALUES (?, ?, ?, ?, ?);
     `;
 
-    db.run(query, [first_name, last_name, username, password, role], function (err) {
-      if (err) {
-        reject("Error inserting user", err.message);
-      } else {
-        console.log(`User added with ID: ${this.lastID}`);
-        resolve(this.lastID); // Return the ID of the newly inserted user
+    db.run(
+      query,
+      [first_name, last_name, username, password, role],
+      function (err) {
+        if (err) {
+          reject("Error inserting user", err.message);
+        } else {
+          console.log(`User added with ID: ${this.lastID}`);
+          resolve(this.lastID);
+        }
       }
-    });
+    );
   });
 };
-
 
 const loginUser = (db, username, password) => {
   return new Promise((resolve, reject) => {
@@ -95,7 +147,13 @@ const loginUser = (db, username, password) => {
         }
 
         const token = jwt.sign(
-          { id: user.id, username: user.username, role: user.role, first_name: user.first_name, last_name: user.last_name  }, 
+          {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+            first_name: user.first_name,
+            last_name: user.last_name,
+          },
           process.env.JWT_SECRET,
           { expiresIn: "3h" }
         );
@@ -108,21 +166,25 @@ const loginUser = (db, username, password) => {
   });
 };
 
-const addRoom = (db, type, price, status, image_path) => {
+const addRoom = (db, name, description, type, price, status, image_path) => {
   return new Promise((resolve, reject) => {
     const query = `
-      INSERT INTO Rooms (type, price, status, image_path)
-      VALUES (?, ?, ?, ?);
+      INSERT INTO Rooms (name, description, type, price, status, image_path)
+      VALUES (?, ?, ?, ?, ?, ?);
     `;
 
-    db.run(query, [type, price, status, image_path], function (err) {
-      if (err) {
-        reject("Error inserting room", err.message);
-      } else {
-        console.log(`Room added with ID: ${this.lastID}`);
-        resolve(this.lastID); 
+    db.run(
+      query,
+      [name, description, type, price, status, image_path],
+      function (err) {
+        if (err) {
+          reject("Error inserting room", err.message);
+        } else {
+          console.log(`Room added with ID: ${this.lastID}`);
+          resolve(this.lastID);
+        }
       }
-    });
+    );
   });
 };
 
@@ -134,7 +196,7 @@ const getRooms = (db) => {
       if (err) {
         reject("Error fetching rooms", err.message);
       } else {
-        resolve(rows); 
+        resolve(rows);
       }
     });
   });
@@ -162,21 +224,160 @@ const getRoomsByTypeAndPrice = (db, type, minPrice, maxPrice) => {
       if (err) {
         reject("Error fetching rooms", err.message);
       } else {
-        resolve(rows); 
+        resolve(rows);
+      }
+    });
+  });
+};
+
+const bookRoom = (db, room_id, user_id) => {
+  return new Promise((resolve, reject) => {
+    //
+    const checkRoomQuery = `SELECT * FROM Rooms WHERE id = ? AND status != 'booked'`;
+    db.get(checkRoomQuery, [room_id], (err, room) => {
+      if (err) {
+        return reject("Error checking room availability", err.message);
+      }
+
+      if (!room) {
+        return reject("Room is either already booked or does not exist");
+      }
+
+      const bookRoomQuery = `
+        UPDATE Rooms
+        SET status = 'booked', booked_by = ?
+        WHERE id = ?;
+      `;
+
+      db.run(bookRoomQuery, [user_id, room_id], function (err) {
+        if (err) {
+          return reject("Error booking room", err.message);
+        }
+
+        resolve({ message: "Room successfully booked", room_id, user_id });
+      });
+    });
+  });
+};
+
+const getBookedRoomsByUser = (db, userId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT * FROM Rooms
+      WHERE status = 'booked' AND booked_by = ?;
+    `;
+
+    db.all(query, [userId], (err, rows) => {
+      if (err) {
+        reject("Error fetching booked rooms", err.message);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+};
+
+const addPayment = (db, userId, amount, paymentMethod) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO Payments (user_id, amount, payment_method, payment_status)
+      VALUES (?, ?, ?, 'completed');
+    `;
+
+    db.run(query, [userId, amount, paymentMethod], function (err) {
+      if (err) {
+        return reject("Error inserting payment", err.message);
+      }
+
+      resolve({
+        id: this.lastID,
+        user_id: userId,
+        amount,
+        payment_method: paymentMethod,
+        payment_status: "completed",
+      });
+    });
+  });
+};
+
+const addBookingHistory = (db, roomId, userId, paymentId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO BookingsHistory (room_id, user_id, payment_id)
+      VALUES (?, ?, ?);
+    `;
+
+    db.run(query, [roomId, userId, paymentId], function (err) {
+      if (err) {
+        return reject("Error inserting booking history", err.message);
+      }
+
+      resolve({
+        id: this.lastID,
+        room_id: roomId,
+        user_id: userId,
+        payment_id: paymentId,
+      });
+    });
+  });
+};
+
+const getPayments = (db) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT * FROM payments`;
+
+    db.all(query, (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
       }
     });
   });
 };
 
 
+const getPaymentById = (db, paymentId) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT * FROM payments WHERE id = ?`;
 
-module.exports = { 
-  initializeDatabase, 
-  addUser, 
-  loginUser, 
-  addRoom, 
-  getRooms,
-  getRoomsByStatus,
-  getRoomsByTypeAndPrice
+    db.get(query, [paymentId], (err, row) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(row);
+      }
+    });
+  });
 };
 
+const getPaymentsByUserId = (db, userId) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT * FROM payments WHERE user_id = ?`;
+
+    db.all(query, [userId], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+};
+
+module.exports = {
+  initializeDatabase,
+  addUser,
+  loginUser,
+  addRoom,
+  getRooms,
+  getRoomsByStatus,
+  getRoomsByTypeAndPrice,
+  bookRoom,
+  getBookedRoomsByUser,
+  addPayment,
+  addBookingHistory,
+  getPaymentById,
+  getPayments,
+  getPaymentsByUserId
+};

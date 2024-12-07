@@ -20,8 +20,10 @@ export default function Login() {
     e.preventDefault();
     if (!formValues) return;
     const res = await login(formValues);
-    if(res){
+    if(res.data.status === 200){
       toast(res.message)
+    } else {
+      toast.error(toast.message)
     }
   };
 

@@ -6,26 +6,7 @@ export default function Roomcards({ room }) {
   const { user } = useAuth();
   const [message, setMessage] = useState("");
 
-  const handleBookRoom = async () => {
-    try {
-      const response = await api.post("http://localhost:4001/rooms", {
-        roomId: room.id,
-        userId: user.id,
-        date: "2024-12-04",
-      });
-      console.log("Response: ", response);
-      if (response.status !== 200) {
-        throw new Error("Invalid credentials");
-      }
 
-      setMessage(response.data.message || "Room successfully booked!");
-      console.log("Response message", response.data.message);
-    } catch (err) {
-      console.error(err);
-
-      setMessage("Failed to book room. Please try again.");
-    }
-  };
 
   return (
     <div className="bg-white shadow-lg rounded-lg p-6 m-4 max-w-xs">

@@ -10,6 +10,7 @@ const { Book } = require("./user/book");
 const { mockUsers } = require("./StaticDatas");
 const { addUser, initializeDatabase, loginUser } = require("./db/db");
 const { AddRoom } = require("./admin/addRoom");
+const { PaymentService } = require("./user/pay");
 
 const app = express();
 
@@ -150,7 +151,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.use(
-  "/rooms",
+  "/book",
 
   authenticateJWT,
   createProxyMiddleware({
@@ -230,6 +231,8 @@ initializeDatabase();
 Book();
 //SHOW ROOMS
 Room();
+//PAYMENTS
+PaymentService()
 
 //Admin
 AddRoom()

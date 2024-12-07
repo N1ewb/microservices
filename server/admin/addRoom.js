@@ -1,7 +1,10 @@
 const express = require("express");
-const app = express();
+const multer = require("multer");
+const path = require("path");
 const cors = require("cors");
 const { addRoom, initializeDatabase } = require("../db/db");
+
+const app = express();
 
 app.use(cors());
 app.use(express.json());
@@ -15,25 +18,42 @@ initializeDatabase()
     console.error("Error initializing database:", err);
   });
 
-app.post("/room", (req, res) => {
-  const { type, price, status, image_path } = req.body;
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "../room_images");
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    cb(null, uniqueName);
+  },
+});
 
-  if (!type || !price || !status || !image_path) {
+const upload = multer({ storage });
+
+app.post("/room", upload.single("image"), (req, res) => {
+  const { type, price, status, name, description } = req.body;
+
+  if (!req.file || !type || !price || !status || !name || !description) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  addRoom(db, type, price, status, image_path)
+  const image_path = `/room_images/${req.file.filename}`;
+
+  addRoom(db, name, description, type, price, status, image_path)
     .then((roomId) => {
       res.status(200).json({
         message: "Room added successfully",
         room: {
           id: roomId,
+          name,
+          description,
           type,
           price,
           status,
           image_path,
         },
-        status: 200
+        status: 200,
       });
     })
     .catch((err) => {

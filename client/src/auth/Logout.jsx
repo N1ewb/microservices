@@ -4,17 +4,18 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Logout() {
   const { token, logout } = useAuth();
-  const navigate = useNavigate()
-  if(token){
-    logout()
-  }
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleLogout = async () => {
-      if (!token) {
-        navigate('/auth/login')
+      if (token) {
+        await logout();
       }
+      navigate("/auth/login");
     };
+
     handleLogout();
-  }, [token]);
-  return <div>Logging you out</div>;
+  }, [token, logout, navigate]);
+
+  return <div>Logging you out...</div>;
 }

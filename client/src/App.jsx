@@ -10,6 +10,8 @@ import Register from "./auth/Register";
 import Logout from "./auth/Logout";
 import AdminLayout from "./layouts/AdminLayout";
 import Userdashboard from "./pages/UserPages/Userdashboard";
+import { Toaster } from "react-hot-toast";
+import Userpayments from "./pages/UserPages/Userpayments";
 
 function App() {
   const router = createBrowserRouter([
@@ -57,6 +59,10 @@ function App() {
                   path: "/private/user/dashboard",
                   element: <Userdashboard />,
                 },
+                {
+                  path: '/private/user/payments',
+                  element: <Userpayments />
+                }
               ],
             },
           ],
@@ -67,6 +73,7 @@ function App() {
   return (
     <>
       <AuthProvider>
+        <Toaster />
         <RouterProvider router={router} />
       </AuthProvider>
     </>

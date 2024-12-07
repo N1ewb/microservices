@@ -3,9 +3,12 @@ import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import DataTable from "../../components/Table";
 import BookedRoom from "../../components/user/BookedRoom";
+import PaymentForm from "../../components/forms/Paymentform";
+import { useModal } from "../../context/PaymentModalContext";
 
 const Userdashboard = () => {
   const { user, token } = useAuth();
+  const modal = useModal()
   const [availableRooms, setAvailableRooms] = useState();
 
   useEffect(() => {
@@ -37,13 +40,16 @@ const Userdashboard = () => {
   ];
 
   return (
-    <div className="max-h-full w-full overflow-auto bg-white p-10 flex flex-col gap-4">
-      <BookedRoom />
-      <input type="text" placeholder="Search room" />
-      <main className="max-w-full h-full">
-        <DataTable TableHead={TableHead} TableData={availableRooms} />
-      </main>
-    </div>
+    
+      <div className="max-h-full w-full overflow-auto bg-white p-10 flex flex-col gap-4">
+        <BookedRoom />
+        <input type="text" placeholder="Search room" />
+        <main className="max-w-full h-full">
+          <DataTable TableHead={TableHead} TableData={availableRooms} />
+        </main>
+        {modal.openPaymentModal && <PaymentForm/>}
+      </div>
+    
   );
 };
 

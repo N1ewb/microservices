@@ -65,6 +65,9 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 200) {
         useToast("Registration successful:", response.data);
         localStorage.setItem("token", response.data.token);
+        return response
+      } else {
+        useToast(response.message)
       }
     } catch (error) {
       useToast("Error occured");

@@ -1,16 +1,35 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { getBookedRooms } from "../../../actions/user.actions";
+import { useModal } from "../../context/modalContexts/PaymentModalContext";
+import { useCheckin } from "../../context/modalContexts/ConfirmCheckInContext";
+import { getReservedRooms } from "../../../actions/user.actions";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function BookedRoom() {
   const { user } = useAuth();
-  const [bookedRooms, setBookedRooms] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { handleTogglePaymentModal } = useModal();
+  const { handleToggleCheckinModal } = useCheckin();
+  const [reservedRoom, setreservedRoom] = useState([]);
+
+  const handleClick = (room) => {
+    handleToggleCheckinModal();
+    navigate(`${location.pathname}?reservation_id=${room.reservation_id}`);
+  };
+
+  const handleClickPayment = (room) => {
+    handleTogglePaymentModal();
+    navigate(`${location.pathname}?userId=${user.id}&roomId=${room.room_id}`);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       if (user) {
-        const data = await getBookedRooms(user);
-        setBookedRooms(data);
+        const response = await getReservedRooms(user);
+        if (response.status) {
+          setreservedRoom(response.rooms);
+        }
       }
     };
     fetchData();
@@ -19,15 +38,15 @@ export default function BookedRoom() {
   return (
     <div className="p-6 max-h-[800px] bg-gray-100 w-full">
       <h2 className="text-2xl font-semibold mb-6">Your Booked Rooms</h2>
-      {bookedRooms && bookedRooms.length > 0 ? (
+      {reservedRoom && reservedRoom.length > 0 ? (
         <div className="flex gap-4 w-full overflow-x-auto pb-7">
-          {bookedRooms.map((room) => (
+          {reservedRoom.map((room) => (
             <div
               key={room.id}
               className="bg-white min-w-[33%] shadow-md rounded-lg overflow-hidden border border-gray-200"
             >
               <img
-                src={`../../../../server${room.image_path}`}
+                src={`http://localhost:5001/server${room.image_path}`}
                 alt={room.type}
                 className="w-full h-48 object-cover"
               />
@@ -51,12 +70,21 @@ export default function BookedRoom() {
                   </p>
                 </div>
                 <div className="checkout w-1/2 p-5 flex justify-end">
-                  <button
-                    
-                    className="bg-blue-500 rounded-md text-white px-5 py-2"
-                  >
-                    Checkout
-                  </button>
+                  {room.status === "reserved" ? (
+                    <button
+                      onClick={() => handleClick(room)}
+                      className="bg-blue-500 rounded-md text-white px-5 py-2"
+                    >
+                      Checkin
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleClickPayment(room)}
+                      className="bg-blue-500 rounded-md text-white px-5 py-2"
+                    >
+                      Checkout
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -65,7 +93,6 @@ export default function BookedRoom() {
       ) : (
         <p className="text-gray-500 text-center mt-10">No booked rooms yet</p>
       )}
-      
     </div>
   );
 }

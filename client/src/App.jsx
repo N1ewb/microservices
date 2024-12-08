@@ -12,6 +12,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import Userdashboard from "./pages/UserPages/Userdashboard";
 import { Toaster } from "react-hot-toast";
 import Userpayments from "./pages/UserPages/Userpayments";
+import Userreservationhistory from "./pages/UserPages/Userreservationhistory";
 
 function App() {
   const router = createBrowserRouter([
@@ -62,6 +63,10 @@ function App() {
                 {
                   path: '/private/user/payments',
                   element: <Userpayments />
+                },
+                {
+                  path: '/private/user/reservation_history',
+                  element: <Userreservationhistory />
                 }
               ],
             },

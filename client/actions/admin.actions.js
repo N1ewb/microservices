@@ -1,8 +1,7 @@
-import toast from "react-hot-toast";
 import { api } from "../src/lib/api";
 
 export async function addRoom(formvalues) {
-  const response = await api.post(`http://localhost:4004/room/`, formvalues, {
+  const response = await api.post(`add/room/`, formvalues, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

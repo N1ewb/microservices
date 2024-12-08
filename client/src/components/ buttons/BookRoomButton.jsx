@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useModal } from "../../context/PaymentModalContext";
-import { useEffect } from "react";
+import { useModal } from "../../context/modalContexts/PaymentModalContext";
 
 export default function BookRoomButton({ roomId, userId }) {
   const { handleTogglePaymentModal } = useModal();

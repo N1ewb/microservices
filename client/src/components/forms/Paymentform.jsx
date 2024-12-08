@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { CreditCard, Calendar, Lock } from "lucide-react";
-import { useModal } from "../../context/PaymentModalContext";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { bookedRoom } from "../../../actions/user.actions";
+import { checkOut } from "../../../actions/user.actions";
+import { useModal } from "../../context/modalContexts/PaymentModalContext";
 
 export default function PaymentForm() {
   const { handleTogglePaymentModal } = useModal();
@@ -32,7 +32,7 @@ export default function PaymentForm() {
     }
   }, [roomId, userId]);
 
-  const handleBookRoom = async () => {
+  const handle = async () => {
     if (!roomId || !userId) {
       toast.error("Missing roomId or userId.");
       return;
@@ -46,15 +46,15 @@ export default function PaymentForm() {
     };
 
     try {
-      const response = await bookedRoom(payload);
+      const response = await checkOut(payload);
       console.log("Response: ", response);
       if (response.status !== 200) {
         toast.error("Invalid credentials");
       }
 
-      toast(response.data.message || "Room successfully booked!");
+      toast(response.data.message || "Room successfully checked out!");
     } catch (err) {
-      toast.error("Failed to book room. Please try again.");
+      toast.error("Failed to check out from room. Please try again.");
     }
   };
 
@@ -98,7 +98,7 @@ export default function PaymentForm() {
       return;
     }
 
-    handleBookRoom();
+    handle();
   };
 
   return (

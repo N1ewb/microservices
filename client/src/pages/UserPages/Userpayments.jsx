@@ -37,7 +37,7 @@ export default function Userpayments() {
         <p className="text-gray-500">View all your payment history below</p>
       </header>
       <main className="flex flex-col gap-4">
-        <div className="p-6 rounded-lg ">
+        <div className=" rounded-lg ">
           {payments.length > 0 ? (
             <table className="w-full table-auto">
               <thead className="bg-gray-200">

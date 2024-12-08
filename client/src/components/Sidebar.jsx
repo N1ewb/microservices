@@ -38,13 +38,13 @@ export default function Sidebar() {
             </Link>
           </li>
           <li>
-            <a
-              href="#"
+            <Link
+              to="/private/user/reservation_history"
               className="flex items-center py-2 px-3 rounded hover:bg-blue-500 hover:text-white transition-colors"
             >
               <FileClock size={24} className="mr-3" />
               <span>Booking History</span>
-            </a>
+            </Link>
           </li>
           <li>
             <a

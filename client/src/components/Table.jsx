@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import EditRoomButton from "./ buttons/EditRoomButton";
-import BookRoomButton from "./ buttons/BookRoomButton";
-import PaymentForm from "./forms/Paymentform";
+import ViewRoomDetailsButton from "./ buttons/ViewRoomDetailsButton";
 
 const DataTable = ({ TableHead, TableData }) => {
   const {user} = useAuth()
   const [openModal, setOpenModal] = useState(false);
-  const handleToggleModal = () => {
-    setOpenModal(!openModal);
-  };
+  // const handleToggleModal = () => {
+  //   setOpenModal(!openModal);
+  // };
   return (
     <div className="overflow-x-auto rounded-lg  w-full ">
       {/* Table Component */}
@@ -48,7 +47,7 @@ const DataTable = ({ TableHead, TableData }) => {
                 </td>
                 <td className="py-3 px-4 text-sm text-gray-700">
                   <div className="text-blue-500 hover:underline focus:outline-none">
-                    {item.status === 'booked' ? user && user.role === 'admin' ? <EditRoomButton /> : <BookRoomButton roomId={item.id} userId={user.id} /> : ''}
+                    {item.status === 'available' ? user && user.role === 'admin' ? <EditRoomButton /> : <ViewRoomDetailsButton roomId={item.id} userId={user.id} /> : ''}
                   </div>
                 </td>
               </tr>

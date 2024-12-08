@@ -14,7 +14,7 @@ const Dashboard = () => {
       try {
         if (!user) return;
         const response = await api.get("/show/rooms");
-        setAvailableRooms(response.data.availableRooms);
+        setAvailableRooms(response.data.rooms);
       } catch (err) {
         console.error(err);
       }

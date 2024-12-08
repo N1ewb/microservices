@@ -11,6 +11,7 @@ const { mockUsers } = require("./StaticDatas");
 const { addUser, initializeDatabase, loginUser } = require("./db/db");
 const { AddRoom } = require("./admin/addRoom");
 const { PaymentService } = require("./user/pay");
+const path = require('path');
 
 const app = express();
 
@@ -24,6 +25,8 @@ app.use(
 );
 
 app.use(express.json());
+
+app.use('/server/room_images', express.static(path.join(__dirname, 'room_images')));
 
 // Rate Limiting
 const rateLimiter = new RateLimiterMemory({
@@ -151,7 +154,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.use(
-  "/book",
+  "/rooms",
 
   authenticateJWT,
   createProxyMiddleware({
@@ -200,11 +203,12 @@ app.use(
     },
   })
 );
+
 app.use(
   "/add",
   authenticateJWT,
   createProxyMiddleware({
-    target: process.env.SHOW_URL,
+    target: process.env.ADD_ROOM_URL,
     changeOrigin: true,
     onError: (err, req, res) => {
       console.error("Proxy error:", err);

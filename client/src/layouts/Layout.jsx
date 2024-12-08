@@ -1,7 +1,9 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
-import { ModalProvider } from "../context/PaymentModalContext";
+import { RoomDetailsProvider } from "../context/modalContexts/RoomDetailsContext";
+import { ModalProvider } from "../context/modalContexts/PaymentModalContext";
+import { CheckinProvider } from "../context/modalContexts/ConfirmCheckInContext";
 
 export default function Layout() {
   const { user, token } = useAuth();
@@ -18,11 +20,14 @@ export default function Layout() {
   }, [user, token]);
 
   return (
-    <ModalProvider>
-      {" "}
-      <div className="h-screen w-full">
-        <Outlet />
-      </div>
-    </ModalProvider>
+    <RoomDetailsProvider>
+      <ModalProvider>
+        <CheckinProvider>
+          <div className="h-screen w-full">
+            <Outlet />
+          </div>
+        </CheckinProvider>
+      </ModalProvider>
+    </RoomDetailsProvider>
   );
 }

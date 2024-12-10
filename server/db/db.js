@@ -288,7 +288,7 @@ const reserveRoom = (db, room_id, user_id) => {
       }
 
       const reserveRoomQuery = `
-        INSERT INTO Reservations (room_id, user_id, status)
+        INSERT INTO Reservations (room_id, user_id, reservation_status)
         VALUES (?, ?, 'reserved');
       `;
       db.run(reserveRoomQuery, [room_id, user_id], function (err) {
@@ -454,7 +454,7 @@ const getPaymentsByUserId = (db, userId) => {
 
 const checkIn = (db, reservationId) => {
   return new Promise((resolve, reject) => {
-    const updateQuery = `UPDATE Reservations SET status = 'booked', checkin_time = ? WHERE id = ?`;
+    const updateQuery = `UPDATE Reservations SET reservation_status = 'booked', checkin_time = ? WHERE id = ?`;
 
     const currentTime = new Date().toISOString();
 
@@ -548,7 +548,7 @@ const checkout = (
 
               const updateReservationQuery = `
                 UPDATE Reservations
-                SET status = 'checkedout'
+                SET reservation_status = 'checkedout'
                 WHERE id = ?;
               `;
 
@@ -630,7 +630,7 @@ const getReservationsByUserId = (db, userId) => {
       FROM Reservations
       INNER JOIN Rooms ON Reservations.room_id = Rooms.id
       WHERE Reservations.user_id = ? 
-        AND Reservations.status != 'checkedout';
+        AND Reservations.reservation_status != 'checkedout';
     `;
 
     db.all(query, [userId], (err, rows) => {
@@ -662,7 +662,7 @@ const updateReservationStatus = (db, reservationId, newStatus) => {
   return new Promise((resolve, reject) => {
     const query = `
       UPDATE Reservations
-      SET status = ?
+      SET reservation_status = ?
       WHERE id = ?;
     `;
     db.run(query, [newStatus, reservationId], function (err) {

@@ -54,7 +54,7 @@ app.post("/reserve", async (req, res) => {
         room_id: roomId,
         user_id: userId,
         date,
-        status: "reserved",
+        reservation_status: "reserved",
       },
       status: 200,
     });
@@ -146,18 +146,18 @@ app.post("/checkin/:reservationId", async (req, res) => {
         .json({ message: `Reservation with ID ${reservationId} not found` });
     }
 
-    if (reservation.status === "booked") {
+    if (reservation.reservation_status === "booked") {
       return res.status(400).json({
         message: `Reservation with ID ${reservationId} is already booked.`,
       });
     }
-
+    console.log("AS")
     const updatedReservation = await updateReservationStatus(
       db,
       reservationId,
       "booked"
     );
-
+    console.log("DS")
     await updateRoomStatus(db, reservation.room_id, "booked");
 
     return res.status(200).json({
